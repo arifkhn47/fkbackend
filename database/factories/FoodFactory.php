@@ -18,6 +18,7 @@ class FoodFactory extends Factory
     public function definition(): array
     {
         return [
+            'user_id' => \App\Models\User::factory(),
             'name' => $this->faker->word(),
             'calories' => $this->faker->numberBetween(50, 500),
             'protein' => $this->faker->randomFloat(2, 0, 50),
