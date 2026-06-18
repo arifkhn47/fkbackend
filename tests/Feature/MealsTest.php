@@ -22,6 +22,7 @@ describe('Meals Feature', function () {
                 'meal_type' => 'breakfast',
                 'date' => now()->toDateString(),
                 'is_eaten' => true,
+                'quantity' => 1,
             ];
 
             $response = $this->actingAs($this->user)->postJson(route('api.v1.meals.store'), $payload);
@@ -43,6 +44,7 @@ describe('Meals Feature', function () {
                 'meal_type' => 'lunch',
                 'date' => now()->toDateString(),
                 'is_eaten' => true,
+                'quantity' => 1,
             ];
 
             $response = $this->actingAs($this->user)->postJson(route('api.v1.meals.store'), $payload);
@@ -94,6 +96,7 @@ describe('Meals Feature', function () {
                 'meal_type' => 'breakfast',
                 'date' => now()->toDateString(),
                 'is_eaten' => true,
+                'quantity' => 1,
             ];
 
             $response = $this->actingAs($this->user)->postJson(route('api.v1.meals.store'), $payload);
@@ -210,6 +213,7 @@ describe('Meals Feature', function () {
                 'meal_type' => 'breakfast',
                 'date' => $pastDate,
                 'is_eaten' => true,
+                'quantity' => 1,
             ];
 
             $response = $this->actingAs($this->user)->postJson(route('api.v1.meals.store'), $payload);
@@ -230,6 +234,7 @@ describe('Meals Feature', function () {
                 'meal_type' => 'dinner',
                 'date' => $futureDate,
                 'is_eaten' => false,
+                'quantity' => 1,
             ];
 
             $response = $this->actingAs($this->user)->postJson(route('api.v1.meals.store'), $payload);
@@ -248,6 +253,7 @@ describe('Meals Feature', function () {
                 'meal_type' => 'snack',
                 'date' => now()->toDateString(),
                 'is_eaten' => true,
+                'quantity' => 1,
             ];
 
             $this->actingAs($this->user)->postJson(route('api.v1.meals.store'), $payload);
@@ -265,6 +271,7 @@ describe('Meals Feature', function () {
                 'meal_type' => 'breakfast',
                 'date' => $date,
                 'is_eaten' => true,
+                'quantity' => 1,
             ];
 
             $payload2 = [
@@ -273,6 +280,7 @@ describe('Meals Feature', function () {
                 'meal_type' => 'lunch',
                 'date' => $date,
                 'is_eaten' => true,
+                'quantity' => 1,
             ];
 
             $this->actingAs($this->user)->postJson(route('api.v1.meals.store'), $payload1);
@@ -289,6 +297,7 @@ describe('Meals Feature', function () {
                 'meal_type' => 'breakfast',
                 'date' => now()->toDateString(),
                 'is_eaten' => false,
+                'quantity' => 1,
             ];
 
             $response = $this->actingAs($this->user)->postJson(route('api.v1.meals.store'), $payload);
@@ -298,6 +307,72 @@ describe('Meals Feature', function () {
                 'user_id' => $this->user->id,
                 'is_eaten' => false,
             ]);
+        });
+
+        test('user can log meal with quantity', function () {
+            $payload = [
+                'mealable_type' => 'food',
+                'mealable_id' => $this->food->id,
+                'meal_type' => 'lunch',
+                'date' => now()->toDateString(),
+                'is_eaten' => true,
+                'quantity' => 2,
+            ];
+
+            $response = $this->actingAs($this->user)->postJson(route('api.v1.meals.store'), $payload);
+
+            $response->assertStatus(201);
+            $this->assertDatabaseHas('meals', [
+                'user_id' => $this->user->id,
+                'quantity' => 2,
+            ]);
+        });
+
+        test('user can\'t log meal without quantity', function () {
+            $payload = [
+                'mealable_type' => 'food',
+                'mealable_id' => $this->food->id,
+                'meal_type' => 'lunch',
+                'date' => now()->toDateString(),
+                'is_eaten' => true,
+            ];
+
+            $response = $this->actingAs($this->user)->postJson(route('api.v1.meals.store'), $payload);
+
+            $response->assertStatus(422);
+            $response->assertJsonValidationErrors('quantity');
+        });
+
+        test('user can\'t log meal with non-numeric quantity', function () {
+            $payload = [
+                'mealable_type' => 'food',
+                'mealable_id' => $this->food->id,
+                'meal_type' => 'lunch',
+                'date' => now()->toDateString(),
+                'is_eaten' => true,
+                'quantity' => 'two',
+            ];
+
+            $response = $this->actingAs($this->user)->postJson(route('api.v1.meals.store'), $payload);
+
+            $response->assertStatus(422);
+            $response->assertJsonValidationErrors('quantity');
+        });
+
+        test('user can\'t log meal with zero quantity', function () {
+            $payload = [
+                'mealable_type' => 'food',
+                'mealable_id' => $this->food->id,
+                'meal_type' => 'lunch',
+                'date' => now()->toDateString(),
+                'is_eaten' => true,
+                'quantity' => 0,
+            ];
+
+            $response = $this->actingAs($this->user)->postJson(route('api.v1.meals.store'), $payload);
+
+            $response->assertStatus(422);
+            $response->assertJsonValidationErrors('quantity');
         });
     });
 
@@ -612,6 +687,55 @@ describe('Meals Feature', function () {
                 'total_carbs',
                 'total_fats',
             ]);
+        });
+    });
+
+    describe('Meals for the day', function () {
+        beforeEach(function() {
+            $this->today = now()->toDateString();
+        });
+        test('user can get all meals for today', function () {
+            Meal::factory()->create([
+                'user_id' => $this->user->id,
+                'date' => $this->today,
+                'meal_type' => 'breakfast',
+            ]);
+
+            Meal::factory()->create([
+                'user_id' => $this->user->id,
+                'date' => $this->today,
+                'meal_type' => 'lunch',
+            ]);
+
+            $response = $this->actingAs($this->user)->getJson(route('api.v1.meals.index', ['date' => $this->today]));
+
+            $response->assertStatus(200);
+            $response->assertJsonCount(2, 'data');
+        });
+
+        test('user cannot get meals for today without authentication', function () {
+            $response = $this->getJson(route('api.v1.meals.index', ['date' => $this->today]));
+
+            $response->assertStatus(401);
+        });
+
+        test('user can only see their own meals for today', function () {
+            Meal::factory()->create([
+                'user_id' => $this->user->id,
+                'date' => $this->today,
+                'meal_type' => 'breakfast',
+            ]);
+
+            Meal::factory()->create([
+                'user_id' => $this->anotherUser->id,
+                'date' => $this->today,
+                'meal_type' => 'lunch',
+            ]);
+
+            $response = $this->actingAs($this->user)->getJson(route('api.v1.meals.index', ['date' => $this->today]));
+
+            $response->assertStatus(200);
+            expect(count($response['data']))->toBe(1);
         });
     });
 });

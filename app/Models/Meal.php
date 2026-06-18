@@ -6,18 +6,21 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
-#[Fillable(['user_id', 'mealable_type', 'mealable_id', 'meal_type', 'date', 'calories', 'protein', 'carbs', 'fats', 'is_eaten'])]
+#[Fillable(['user_id', 'mealable_type', 'mealable_id', 'meal_type', 'date', 'quantity', 'calories', 'protein', 'carbs', 'fats', 'is_eaten'])]
 #
 class Meal extends Model
 {
     use HasFactory;
 
+    public function mealable()
+    {
+        return $this->morphTo();
+    }
+
     public function scopeDailyStats($query, $date, $mealType = null)
     {
-        $query->whereDate('date', $date);
-        if ($mealType) {
-            $query->where('meal_type', $mealType);
-        }
+        $query->whereDate('date', $date)
+            ->when($mealType, fn($q) => $q->where('meal_type', $mealType));
 
         return $query->selectRaw('
             COALESCE(SUM(calories), 0) as total_calories,

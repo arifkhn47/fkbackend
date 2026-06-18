@@ -8,6 +8,21 @@ use Illuminate\Database\Eloquent\Relations\Relation;
 
 class MealController extends Controller
 {
+    public function index($date, $mealType = null)
+    {
+        $result = auth()->user()
+            ->meals()
+            ->where('date', $date)
+            ->when($mealType, fn($q) => $q->where('meal_type', $mealType))
+            ->with('mealable')
+            ->get();
+
+        return response()->json([
+            'date' => $date,
+            'data' => $result,
+        ], 200);
+    }
+    
     public function store(StoreMealRequest $request)
     {
         $mealableClass = Relation::getMorphedModel($request->input('mealable_type'));
@@ -20,7 +35,7 @@ class MealController extends Controller
         if (!auth()->user()->can('create', $mealable)) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
-        
+
         auth()->user()
             ->meals()
             ->create($mealable->only(['calories', 'protein', 'carbs', 'fats']) + $request->validated());
