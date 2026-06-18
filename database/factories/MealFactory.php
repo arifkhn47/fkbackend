@@ -23,6 +23,7 @@ class MealFactory extends Factory
             'mealable_id' => \App\Models\Food::factory(),
             'meal_type' => $this->faker->randomElement(['breakfast', 'lunch', 'dinner', 'snack']),
             'date' => $this->faker->date(),
+            'quantity' => $this->faker->randomFloat(2, 1, 10),
             'calories' => $this->faker->numberBetween(50, 500),
             'protein' => $this->faker->randomFloat(2, 0, 50),
             'carbs' => $this->faker->randomFloat(2, 0, 100),

@@ -29,6 +29,7 @@ class StoreMealRequest extends FormRequest
             'meal_type' => 'required|string|in:breakfast,lunch,dinner,snack',
             'date' => 'required|date_format:Y-m-d',
             'is_eaten' => 'required|boolean',
+            'quantity' => 'required|numeric|min:1',
         ];
     }
 }

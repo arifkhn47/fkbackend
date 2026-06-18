@@ -17,6 +17,7 @@ return new class extends Migration
             $table->morphs('mealable');
             $table->string('meal_type');
             $table->date('date');
+            $table->float('quantity', 10, 2);
             $table->float('calories', 10, 2);
             $table->float('protein', 10, 2);
             $table->float('carbs', 10, 2);
