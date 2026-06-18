@@ -47,4 +47,12 @@ class User extends Authenticatable implements PasskeyUser
             'two_factor_confirmed_at' => 'datetime',
         ];
     }
+
+    /**
+     * Get the foods for the user.
+     */
+    public function foods()
+    {
+        return $this->hasMany(Food::class);
+    }
 }
