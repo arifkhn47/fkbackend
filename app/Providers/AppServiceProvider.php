@@ -7,6 +7,9 @@ use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
+use Illuminate\Database\Eloquent\Relations\Relation;
+use App\Models\Food;
+use App\Enums\MealableType;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -24,6 +27,10 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->configureDefaults();
+
+        Relation::enforceMorphMap([
+            MealableType::FOOD->value => Food::class,
+        ]);
     }
 
     /**
