@@ -24,7 +24,7 @@ class StoreMealRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'mealable_type' => ['required', 'string', Rule::in([MealableType::FOOD->value])],
+            'mealable_type' => ['required', 'string', Rule::in(MealableType::getAllValues())],
             'mealable_id' => 'required|integer',
             'meal_type' => 'required|string|in:breakfast,lunch,dinner,snack',
             'date' => 'required|date_format:Y-m-d',
