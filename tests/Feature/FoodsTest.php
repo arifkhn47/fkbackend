@@ -261,7 +261,7 @@ describe('Foods Feature', function () {
                 'fats' => 3.8,
             ];
 
-            $response = $this->actingAs($this->user)->putJson(route('api.v1.foods.update', $this->food->id  ), $payload);
+            $response = $this->actingAs($this->user)->putJson(route('api.v1.foods.update', $this->food->id), $payload);
 
             $response->assertStatus(200);
             $this->assertDatabaseHas('foods', [
