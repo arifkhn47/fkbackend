@@ -36,10 +36,10 @@ class MealController extends Controller
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
-        auth()->user()
-            ->meals()
-            ->create($mealable->only(['calories', 'protein', 'carbs', 'fats']) + $request->validated());
+       auth()->user()
+        ->meals()
+        ->create($mealable->calculateMacros($request->input('quantity')) + $request->validated());
         
-            return response()->json(['message' => 'Meal stored successfully'], 201);
+        return response()->json(['message' => 'Meal stored successfully'], 201);
     }
 }
