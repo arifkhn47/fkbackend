@@ -9,6 +9,7 @@ use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use App\Models\Food;
+use App\Models\Recipe;
 use App\Enums\MealableType;
 
 class AppServiceProvider extends ServiceProvider
@@ -30,6 +31,7 @@ class AppServiceProvider extends ServiceProvider
 
         Relation::enforceMorphMap([
             MealableType::FOOD->value => Food::class,
+            MealableType::RECIPE->value => Recipe::class,
         ]);
     }
 
