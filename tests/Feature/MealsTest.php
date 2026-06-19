@@ -51,12 +51,8 @@ describe('Meals Feature', function () {
 
             $response->assertStatus(201);
             $this->assertDatabaseHas('meals', [
-                'mealable_id' => $this->food->id,
-                'calories' => $this->food->calories,
-                'protein' => $this->food->protein,
-                'carbs' => $this->food->carbs,
-                'fats' => $this->food->fats,
-            ]);
+                'mealable_id' => $this->food->id
+            ] + $this->food->calculateMacros($payload['quantity']));
         });
 
         test('user cannot log meal without authentication', function () {
