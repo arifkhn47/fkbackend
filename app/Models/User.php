@@ -59,4 +59,9 @@ class User extends Authenticatable implements PasskeyUser
     {
         return $this->hasMany(Meal::class);
     }
+
+    public function recipes(): HasMany
+    {
+        return $this->hasMany(Recipe::class);
+    }
 }
