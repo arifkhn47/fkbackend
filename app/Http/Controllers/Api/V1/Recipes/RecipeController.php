@@ -28,11 +28,7 @@ class RecipeController extends Controller
         $cookedWeight = $request->input('cooked_weight');
         $recipe->update([
             'cooked_weight' => $cookedWeight,
-            'calories' => round($recipe->ingredients->sum('calories') / $cookedWeight * 100, 2),
-            'protein'  => round($recipe->ingredients->sum('protein') / $cookedWeight * 100, 2),
-            'carbs'    => round($recipe->ingredients->sum('carbs') / $cookedWeight * 100, 2),
-            'fats'     => round($recipe->ingredients->sum('fats') / $cookedWeight * 100, 2),
-        ]);
+        ] + $recipe->macrosPerHundred($cookedWeight));
 
         return response()->json($recipe, 201);
     }
