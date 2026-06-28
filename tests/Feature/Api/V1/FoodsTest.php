@@ -2,9 +2,7 @@
 
 use App\Models\Food;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 
-uses(RefreshDatabase::class);
 
 describe('Foods Feature', function () {
     beforeEach(function () {
@@ -243,6 +241,27 @@ describe('Foods Feature', function () {
 
             $food = Food::where('name', 'Banana')->first();
             expect($food->user_id)->toBe($this->user->id);
+        });
+
+        it('ensure food name should is unique', function () {
+            
+            $payload = [
+                'name' => 'Banana',
+                'calories' => 89,
+                'protein' => 1.1,
+                'carbs' => 23,
+                'fats' => 0.3,
+            ];
+
+            Food::factory()->create([
+                'user_id' => $this->user->id,
+                'name' => $payload['name']
+            ]);
+
+            $response = $this->actingAs($this->user)->postJson(route('api.v1.foods.store'), $payload);
+
+            $response->assertStatus(422);
+            $this->assertDatabaseMissing('foods', $payload);
         });
     });
 

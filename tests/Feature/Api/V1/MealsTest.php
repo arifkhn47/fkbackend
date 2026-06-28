@@ -3,9 +3,7 @@
 use App\Models\Food;
 use App\Models\Meal;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 
-uses(RefreshDatabase::class);
 
 describe('Meals Feature', function () {
     beforeEach(function () {
