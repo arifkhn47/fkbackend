@@ -7,6 +7,7 @@ use App\Http\Requests\Foods\StoreFoodRequest;
 use App\Actions\Foods\CreateNewFood;
 use App\Models\Food;  
 use App\Http\Requests\Foods\UpdateFoodRequest;
+use Illuminate\Routing\Attributes\Controllers\Authorize;
 
 class FoodController extends Controller
 {
@@ -29,11 +30,9 @@ class FoodController extends Controller
         return response()->json($food, 201);
     }
 
+    #[Authorize('update', 'food')]
     public function update(UpdateFoodRequest $request, Food $food)
     {
-        if ($food->user_id !== auth()->id()) {
-            return response()->json(['message' => 'Unauthorized'], 403);
-        }
         $food->update($request->validated());
         return response()->json($food, 200);
     }

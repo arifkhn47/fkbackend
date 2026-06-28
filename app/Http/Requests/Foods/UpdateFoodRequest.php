@@ -2,8 +2,10 @@
 
 namespace App\Http\Requests\Foods;
 
+use App\Models\Food;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class UpdateFoodRequest extends FormRequest
 {
@@ -23,7 +25,11 @@ class UpdateFoodRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => 'sometimes|required',
+            'name' => [
+                'sometimes', 
+                'required',
+                Rule::unique(Food::class)->ignore(request('food')->id)
+            ],
             'calories' => 'sometimes|required|numeric|min:0',
             'protein' => 'sometimes|required|numeric|min:0',
             'carbs' => 'sometimes|required|numeric|min:0',
