@@ -2,6 +2,7 @@
 
 use App\Models\Food;
 use App\Models\User;
+use Inertia\Testing\AssertableInertia as Assert;
 
 describe("Food Feature", function () {
     beforeEach(function () {
@@ -86,6 +87,35 @@ describe("Food Feature", function () {
             $this->put(route('foods.update', ['food' => $food]), $food->toArray())
                 ->assertRedirect(route('login'));
         });
+    });
+
+    describe("Food Search", function() {
+        it('returns only foods matching the search query', function () {
+            $user = User::factory()->create();
+
+            $matchingFood = Food::factory()->create([
+                'user_id' => $user->id,
+                'name' => 'Chicken Breast',
+            ]);
+
+            $nonMatchingFood = Food::factory()->create([
+                'user_id' => $user->id,
+                'name' => 'Avocado',
+            ]);
+
+            $response = $this->actingAs($user)->get(route('foods.index', ['q' => $matchingFood->name]));
+
+            $response->assertInertia(fn ($page) => $page
+                ->component('foods/index')
+                ->has('foods', 1)
+                ->where('foods.0.id', $matchingFood->id)
+            );
+        });
+        it('returns an empty array when no foods match the search query');
+        it('search is case-insensitive');
+        it('does not return foods belonging to other users');
+        it('treats an empty search query the same as no query');
+        it('returns all foods for the user when no search query is provided');
     });
     
 });
