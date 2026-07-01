@@ -16,8 +16,16 @@ class FoodController extends Controller
 {
     public function index(): Response
     {
+        $validated = request()->validate([
+            'q' => 'nullable|string|max:100',
+        ]);
+
+        $search = $validated['q'] ?? null;
+        $foods = auth()->user()->foods()
+            ->search($search)
+            ->get();
         return Inertia::render('foods/index', [
-            'foods' => auth()->user()->foods
+            'foods' => $foods
         ]);
     }
 
