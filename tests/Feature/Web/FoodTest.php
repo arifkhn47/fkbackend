@@ -91,19 +91,18 @@ describe("Food Feature", function () {
 
     describe("Food Search", function() {
         it('returns only foods matching the search query', function () {
-            $user = User::factory()->create();
 
             $matchingFood = Food::factory()->create([
-                'user_id' => $user->id,
+                'user_id' => $this->user->id,
                 'name' => 'Chicken Breast',
             ]);
 
             $nonMatchingFood = Food::factory()->create([
-                'user_id' => $user->id,
+                'user_id' => $this->user->id,
                 'name' => 'Avocado',
             ]);
 
-            $response = $this->actingAs($user)->get(route('foods.index', ['q' => $matchingFood->name]));
+            $response = $this->actingAs($this->user)->get(route('foods.index', ['q' => $matchingFood->name]));
 
             $response->assertInertia(fn ($page) => $page
                 ->component('foods/index')
@@ -111,11 +110,79 @@ describe("Food Feature", function () {
                 ->where('foods.0.id', $matchingFood->id)
             );
         });
-        it('returns an empty array when no foods match the search query');
-        it('search is case-insensitive');
-        it('does not return foods belonging to other users');
-        it('treats an empty search query the same as no query');
-        it('returns all foods for the user when no search query is provided');
+
+        it('returns an empty array when no foods match the search query', function() {
+            Food::factory()->create([
+                'user_id' => $this->user->id,
+                'name' => 'Avocado',
+            ]);
+
+            $response = $this->actingAs($this->user)->get(route('foods.index', ['q' => 'vado']));
+            $response->assertInertia(fn ($page) => $page
+                ->component('foods/index')
+                ->has('foods', 0));
+
+        });
+
+        it('search is case-insensitive', function() {
+            $matchingFood = Food::factory()->create([
+                'user_id' => $this->user->id,
+                'name' => 'Avocado',
+            ]);
+
+            $response = $this->actingAs($this->user)->get(route('foods.index', ['q' => 'Avo']));
+            
+            $response->assertInertia(fn ($page) => $page
+                ->component('foods/index')
+                ->has('foods', 1)
+                ->where('foods.0.id', $matchingFood->id));
+            
+            $response2 = $this->actingAs($this->user)->get(route('foods.index', ['q' => 'aVo']));
+            
+            $response2->assertInertia(fn ($page) => $page
+                ->component('foods/index')
+                ->has('foods', 1)
+                ->where('foods.0.id', $matchingFood->id));
+        });
+
+        it('treats an empty search query the same as no query', function () {
+            Food::factory()->count(3)->create([
+                'user_id' => $this->user->id,
+            ]);
+
+            $this->actingAs($this->user)->get(route('foods.index', ['q' => '']))
+                ->assertInertia(fn ($page) => $page
+                ->component('foods/index')
+                ->has('foods', 3));
+            
+        });
+        it('returns all foods for the user when no search query is provided', function () {
+             Food::factory()->count(3)->create([
+                'user_id' => $this->user->id,
+            ]);
+
+            $this->actingAs($this->user)->get(route('foods.index'))
+                ->assertInertia(fn ($page) => $page
+                ->component('foods/index')
+                ->has('foods', 3));
+        });
+
+        it('accepts a search query within 100 characters', function () {
+            $user = User::factory()->create();
+
+            $response = $this->actingAs($user)->get('/foods?q=' . str_repeat('a', 100));
+
+            $response->assertOk();
+        });
+
+        it('rejects a search query exceeding 100 characters', function () {
+            $user = User::factory()->create();
+
+            $response = $this->actingAs($user)->get('/foods?q=' . str_repeat('a', 101));
+
+            $response->assertSessionHasErrors('q');
+        });
+        
     });
     
 });
